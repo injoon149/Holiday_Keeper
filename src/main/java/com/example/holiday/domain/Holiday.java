@@ -16,10 +16,7 @@ import java.time.LocalDateTime;
 @Builder(builderClassName = "HolidayBuilder")
 @Entity
 @Table(
-        name = "holiday",
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_holiday_country_date", columnNames = {"country_code", "holiday_date"})
-        }
+        name = "holiday"
 )
 public class Holiday {
     @Id

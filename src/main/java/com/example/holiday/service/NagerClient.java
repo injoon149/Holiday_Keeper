@@ -3,10 +3,12 @@ package com.example.holiday.service;
 import com.example.holiday.dto.response.NagerCountryResponse;
 import com.example.holiday.dto.response.NagerHolidayResponse;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
 
+@Service
 public class NagerClient {
     private final WebClient webClient;
 

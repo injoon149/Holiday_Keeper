@@ -34,7 +34,7 @@ public class HolidayController {
             @RequestParam(required = false)
             Integer year,
 
-            @Parameter(description = "국가 코드 (ISO 3166-1 alpha-2, 예: KR, US)")
+            @Parameter(description = "국가 코드 (예: KR, US)")
             @RequestParam(required = false)
             String countryCode,
 
@@ -90,16 +90,5 @@ public class HolidayController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(
-            summary = "전체 국가 대상 특정 연도 공휴일 동기화 (관리용)",
-            description = "전체 Country에 대해 해당 연도의 공휴일을 외부 API에서 다시 조회하여 덮어씁니다."
-    )
-    @PostMapping("/sync-year/{year}")
-    public ResponseEntity<Void> syncYearForAllCountries(
-            @PathVariable int year
-    ) {
-        holidayService.syncAllCountriesForYear(year);
-        return ResponseEntity.noContent().build();
-    }
 }
 
