@@ -17,6 +17,8 @@
 | Build       | Gradle (Groovy)                |
 | Test        | JUnit 5 + Mockito              |
 | API 문서      | Springdoc OpenAPI (Swagger UI) |
+| 배포 도구      | Docker |
+
 
 ***
 #### 3. ERD 설계
@@ -44,6 +46,15 @@ HolidayType (1) — (N) Holiday
 ```
 ./gradlew bootRun
 ```
+
+Docker로 실행:
+
+docker desktop 실행 후
+```
+docker build -t holiday-keeper .
+docker run --rm -p 8080:8080 holiday-keeper
+```
+
 
 H2 콘솔 접속
 ```
@@ -124,7 +135,13 @@ http://localhost:8080/v3/api-docs
 #### 7. 테스트 성공 스크린샷
 <img width="1819" height="649" alt="image" src="https://github.com/user-attachments/assets/dfc4270a-bb1f-4646-9f7d-45e1f2f27e43" />
 
+테스트는 HolidayService의 핵심 기능(조회, 저장, 갱신)에 대해 단위 테스트 기반으로 검증하였습니다.
 
+
+#### 8. 향후 개선 가능성
+- 국가 코드 정적 캐싱 적용
+- 테스트 커버리지 확장
+- Redis 도입 시 응답 캐싱 적용 가능
 
 
 
