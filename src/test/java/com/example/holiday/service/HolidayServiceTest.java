@@ -36,7 +36,7 @@ import static org.mockito.Mockito.*;
  * - 외부 API(NagerClient)는 Mocking
  */
 @SpringBootTest
-@Transactional  // 각 테스트 후 자동 롤백 → DB 깨끗하게 유지
+@Transactional  // 각 테스트 후 자동 롤백
 class HolidayServiceTest {
 
     @Autowired
@@ -52,13 +52,13 @@ class HolidayServiceTest {
     HolidayTypeRepository holidayTypeRepository;
 
     @MockBean
-    NagerClient nagerClient; // 실제 HTTP 호출 막고, 우리가 원하는 응답 주입
+    NagerClient nagerClient;
 
     @Test
     @DisplayName("initialLoadIfEmpty: 비어 있을 때 2020~2025 공휴일을 적재한다")
-    void initialLoadIfEmpty_loadsDataWhenEmpty() {
+    void 초기_데이터_로드() {
         // given
-        // 1) 외부 국가 목록 Stub (KR 한 개만)
+        // 1) 외부 국가 목록 (KR 한개만)
         List<NagerCountryResponse> countryResponses = List.of(
                 new NagerCountryResponse("KR", "Korea (Republic of)")
         );
@@ -80,7 +80,7 @@ class HolidayServiceTest {
                             countryCode,
                             false,
                             true,
-                            1949,
+                            2025,
                             List.of("Public")
                     )
             );
@@ -123,9 +123,10 @@ class HolidayServiceTest {
 
     @Test
     @DisplayName("initialLoadIfEmpty: 이미 데이터가 있으면 아무 작업도 하지 않는다")
-    void initialLoadIfEmpty_doesNothingWhenDataExists() {
+    void 초기_데이터_로드_이미_데이터있으면_수행x() {
+        reset(nagerClient);
         // given
-        // 우선 KR 국가 & Holiday 한 건을 직접 저장해서 "이미 데이터 있는 상황" 만들기
+        // 우선 KR 국가 & Holiday 한 건을 직접 저장
         Country kr = Country.builder()
                 .code("KR")
                 .name("Korea (Republic of)")
@@ -168,7 +169,7 @@ class HolidayServiceTest {
 
     @Test
     @DisplayName("refresh: 특정 연도/국가 데이터를 삭제 후 재삽입한다")
-    void refresh_replacesHolidaysForYearAndCountry() {
+    void refresh_테스트() {
         // given
         // 1) 먼저 initialLoadIfEmpty()로 기본 데이터 적재
         List<NagerCountryResponse> countryResponses = List.of(
@@ -187,7 +188,7 @@ class HolidayServiceTest {
                                     countryCode,
                                     true,
                                     true,
-                                    1949,
+                                    2025,
                                     List.of("Public")
                             )
                     );
@@ -205,11 +206,9 @@ class HolidayServiceTest {
         assertThat(beforeCount2025).isEqualTo(1);
 
         // 2) 이제 refresh(2025, "KR")를 호출했을 때,
-        //    다른 공휴일 데이터로 갈아끼우도록 Stub 변경
+        //    다른 공휴일 데이터로 갈아끼우도록 변경
         reset(nagerClient); // 이전 stubbing 초기화
 
-        // 국가 목록은 refresh에서 fetchAndSaveCountry가 필요 없도록, 미리 country는 DB에 있으니 호출 안될 예정이지만,
-        // 혹시를 위해 기본 Stub 정도만
         when(nagerClient.getAvailableCountries()).thenReturn(countryResponses);
 
         // 2025년 KR 공휴일을 "다른 이름"으로 바꿔서 리턴하도록 Stub

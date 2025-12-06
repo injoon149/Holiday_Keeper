@@ -48,15 +48,15 @@ public class Holiday {
     @JoinColumn(name = "type_code")
     private HolidayType type;
 
-    /** 매년 날짜가 고정인지 여부 */
+    // 매년 날짜가 고정인지 여부
     @Column(name = "is_fixed", nullable = false)
     private boolean fixed;
 
-    /** 전국 공통 공휴일인지 여부 */
+    // 전국 공통 공휴일인지 여부
     @Column(name = "is_global", nullable = false)
     private boolean global;
 
-    /** 최초 시행 연도 (nullable) */
+    // 최초 시행 연도 (nullable)
     @Column(name = "launch_year")
     private Integer launchYear;
 

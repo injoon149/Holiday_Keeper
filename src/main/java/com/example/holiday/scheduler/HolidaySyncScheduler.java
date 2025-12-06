@@ -19,6 +19,7 @@ public class HolidaySyncScheduler {
 
     //테스트용
     //@Scheduled(fixedDelay = 10_000, zone = "Asia/Seoul")
+    //과제 제출용(매년 1 월 2 일 01:00 KST에 동기화)
     @Scheduled(cron = "0 0 1 2 1 *", zone = "Asia/Seoul")
     public void syncCurrentAndPreviousYear() {
         ZoneId zoneId = ZoneId.of("Asia/Seoul");
@@ -33,7 +34,7 @@ public class HolidaySyncScheduler {
         try {
             holidayService.syncAllCountriesForYear(previousYear);
         } catch (IllegalArgumentException e) {
-            // (예: 과제 범위 밖 연도면 스킵)
+
             log.warn("[HolidaySyncScheduler] previousYear={} 스킵 - {}", previousYear, e.getMessage());
         }
 

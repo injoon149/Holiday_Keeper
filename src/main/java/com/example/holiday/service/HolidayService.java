@@ -77,7 +77,7 @@ public class HolidayService {
 
         // 1) Country가 DB에 없으면 외부 API 국가 목록에서 찾아서 저장
         Country country = countryRepository.findById(upperCode)
-                .orElseGet(() -> fetchAndSaveCountry(upperCode));
+                .orElseGet(() -> saveCountry(upperCode));
 
         // 2) 실제 동기화 수행 (기존 데이터 삭제 + 새 데이터 삽입)
         syncYearCountry(year, country.getCode(), true);
@@ -173,7 +173,7 @@ public class HolidayService {
      * 외부 API /AvailableCountries 응답에서 countryCode에 해당하는 국가를 찾아 DB에 저장.
      * refresh 시 Country가 없을 때만 호출.
      */
-    private Country fetchAndSaveCountry(String countryCode) {
+    private Country saveCountry(String countryCode) {
         List<NagerCountryResponse> externalCountries = nagerClient.getAvailableCountries();
 
         Optional<NagerCountryResponse> match = externalCountries.stream()
