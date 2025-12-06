@@ -122,6 +122,8 @@ http://localhost:8080/v3/api-docs
 ```
 
 #### 7. 테스트 성공 스크린샷
+<img width="1819" height="649" alt="image" src="https://github.com/user-attachments/assets/dfc4270a-bb1f-4646-9f7d-45e1f2f27e43" />
+
 
 
 
