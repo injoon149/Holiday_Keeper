@@ -104,6 +104,7 @@ Example
 DELETE /api/holidays?year=2025&countryCode=KR
 ```
 
+
 Response
 <img width="558" height="174" alt="image" src="https://github.com/user-attachments/assets/5c520e2e-3aaa-4c5c-9f76-dc1c71af0937" />
 
