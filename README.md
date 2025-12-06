@@ -52,7 +52,7 @@ Docker로 실행:
 docker desktop 실행 후
 ```
 docker build -t holiday-keeper .
-docker run --rm -p 8080:8080 holiday-keeper
+docker run -p 8080:8080 holiday-keeper
 ```
 
 
