@@ -17,8 +17,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -153,7 +155,23 @@ public class HolidayService {
         Country country = countryRepository.findById(countryCode)
                 .orElseThrow(() -> new IllegalStateException("Country must exist before syncing holidays"));
 
-        List<Holiday> holidays = externalHolidays.stream()
+        // (1) date + localName 기준으로 중복 제거
+        record HolidayKey(LocalDate date, String localName) {}
+
+        List<NagerHolidayResponse> deduped = externalHolidays.stream()
+                .collect(Collectors.toMap(
+                        res -> new HolidayKey(res.date(), res.localName()),
+                        res -> res,
+                        // 같은 key가 여러 번 들어오면 첫 번째 것만 유지
+                        (first, duplicate) -> first,
+                        LinkedHashMap::new
+                ))
+                .values()
+                .stream()
+                .toList();
+
+        // (2) 중복 제거된 리스트로 Holiday 엔티티 생성
+        List<Holiday> holidays = deduped.stream()
                 .map(res -> Holiday.builder()
                         .country(country)
                         .date(res.date())

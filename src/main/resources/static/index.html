@@ -1,0 +1,454 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>Holiday Mini Service</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            margin: 0;
+            padding: 24px;
+            background: #f4f5f7;
+        }
+        h1 {
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 24px;
+        }
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+        }
+        .card h2 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+        label {
+            font-size: 13px;
+            color: #333;
+        }
+        input, select {
+            padding: 6px 8px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        button {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: none;
+            background: #2563eb;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        button.danger {
+            background: #dc2626;
+        }
+        button.secondary {
+            background: #64748b;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: default;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+            font-size: 13px;
+        }
+        th, td {
+            border-bottom: 1px solid #e5e7eb;
+            padding: 6px 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background: #f9fafb;
+        }
+        #log {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New";
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+            background: #0b1120;
+            color: #e5e7eb;
+            padding: 8px 10px;
+            border-radius: 8px;
+        }
+        .tag {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 999px;
+            font-size: 11px;
+            background: #e5e7eb;
+            color: #111827;
+        }
+        .tag-public {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        .pill {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 999px;
+            border: 1px solid #e5e7eb;
+            display: inline-block;
+            margin-left: 4px;
+        }
+        .pagination-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
+            gap: 8px;
+            font-size: 12px;
+        }
+        .pagination-buttons {
+            display: flex;
+            gap: 4px;
+        }
+        .pagination-buttons button {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+<h1>Holiday Mini Service</h1>
+<div class="subtitle">
+    Nager API 기반 전세계 공휴일 저장 · 검색 · 리프레시 · 삭제 콘솔
+</div>
+
+<!-- 검색 카드 -->
+<div class="card">
+    <h2>검색 (Search)</h2>
+    <div class="form-row">
+        <label>연도 (year)</label>
+        <input id="year" type="number" placeholder="예: 2025" />
+        <label>국가 코드 (countryCode)</label>
+        <input id="countryCode" type="text" placeholder="예: KR" maxlength="2" />
+
+        <label>From</label>
+        <input id="from" type="date" />
+        <label>To</label>
+        <input id="to" type="date" />
+
+        <label>타입 (typeCode)</label>
+        <input id="typeCode" type="text" placeholder="예: Public" />
+    </div>
+    <div class="form-row">
+        <label>Page</label>
+        <input id="page" type="number" value="0" style="width: 60px;" />
+        <label>Size</label>
+        <input id="size" type="number" value="20" style="width: 60px;" />
+        <button onclick="searchHolidays(true)">검색</button>
+        <button class="secondary" onclick="clearResults()">초기화</button>
+    </div>
+
+    <!-- 페이지 정보 + 이동 버튼 -->
+    <div class="pagination-row">
+        <div id="resultSummary" style="color:#555;"></div>
+        <div class="pagination-buttons">
+            <button id="btnFirst" onclick="goToPage('first')" disabled>≪ 처음</button>
+            <button id="btnPrev" onclick="goToPage('prev')" disabled>‹ 이전</button>
+            <button id="btnNext" onclick="goToPage('next')" disabled>다음 ›</button>
+            <button id="btnLast" onclick="goToPage('last')" disabled>마지막 ≫</button>
+        </div>
+    </div>
+
+    <div id="resultContainer"></div>
+</div>
+
+<!-- 리프레시 / 삭제 카드 -->
+<div class="card">
+    <h2>연도·국가별 리프레시 / 삭제</h2>
+    <div class="form-row">
+        <label>연도 (year)</label>
+        <input id="year2" type="number" placeholder="예: 2025" />
+        <label>국가 코드 (countryCode)</label>
+        <input id="countryCode2" type="text" placeholder="예: KR" maxlength="2" />
+        <button onclick="refreshYearCountry()">리프레시 (외부 API 재동기화)</button>
+        <button class="danger" onclick="deleteYearCountry()">삭제 (해당 연도/국가 전체)</button>
+    </div>
+</div>
+
+<!-- 로그 카드 -->
+<div class="card">
+    <h2>API 로그</h2>
+    <div id="log"></div>
+</div>
+
+<script>
+    const baseUrl = '';
+
+    // 최근 검색 상태를 저장해서 페이지 이동 시 재사용
+    let lastSearch = {
+        year: null,
+        countryCode: null,
+        from: null,
+        to: null,
+        typeCode: null,
+        page: 0,
+        size: 20,
+        totalPages: 0
+    };
+
+    function log(msg) {
+        const logEl = document.getElementById('log');
+        const now = new Date().toISOString();
+        logEl.textContent = `[${now}] ${msg}\n` + logEl.textContent;
+    }
+
+    // resetPageIfNewSearch = true 이면 page를 0으로 초기화
+    async function searchHolidays(resetPageIfNewSearch) {
+        const year = document.getElementById('year').value;
+        const countryCode = document.getElementById('countryCode').value;
+        const from = document.getElementById('from').value;
+        const to = document.getElementById('to').value;
+        const typeCode = document.getElementById('typeCode').value;
+        const pageInput = document.getElementById('page');
+        const sizeInput = document.getElementById('size');
+
+        let page = parseInt(pageInput.value || '0', 10);
+        const size = parseInt(sizeInput.value || '20', 10);
+
+        if (resetPageIfNewSearch) {
+            // 검색 버튼 누를 때는 항상 0페이지부터
+            page = 0;
+            pageInput.value = 0;
+        }
+
+        const params = new URLSearchParams();
+        if (year) params.append('year', year);
+        if (countryCode) params.append('countryCode', countryCode);
+        if (from) params.append('from', from);
+        if (to) params.append('to', to);
+        if (typeCode) params.append('typeCode', typeCode);
+        params.append('page', page);
+        params.append('size', size);
+
+        try {
+            log(`GET /api/holidays?${params.toString()}`);
+            const res = await fetch(`${baseUrl}/api/holidays?` + params.toString());
+            if (!res.ok) {
+                const txt = await res.text();
+                log('검색 실패: ' + txt);
+                alert('검색 실패: ' + res.status);
+                return;
+            }
+            const data = await res.json();
+
+            // 응답 기반으로 lastSearch 갱신
+            lastSearch = {
+                year: year || null,
+                countryCode: countryCode || null,
+                from: from || null,
+                to: to || null,
+                typeCode: typeCode || null,
+                page: data.number ?? page,
+                size: data.size ?? size,
+                totalPages: data.totalPages ?? 0
+            };
+
+            // 페이지 input도 실제 페이지 번호로 맞춰준다
+            pageInput.value = lastSearch.page;
+            sizeInput.value = lastSearch.size;
+
+            renderResult(data);
+            updatePaginationButtons(data);
+        } catch (e) {
+            log('검색 오류: ' + e);
+            alert('검색 중 오류가 발생했습니다. 콘솔 로그를 확인하세요.');
+        }
+    }
+
+    function renderResult(page) {
+        const container = document.getElementById('resultContainer');
+        const summary = document.getElementById('resultSummary');
+
+        if (!page || !page.content || page.content.length === 0) {
+            container.innerHTML = '<p>검색 결과가 없습니다.</p>';
+            summary.textContent = '';
+            return;
+        }
+
+        summary.textContent =
+            `총 ${page.totalElements}건 / ${page.totalPages}페이지 ` +
+            `| 현재 페이지: ${page.number} (size=${page.size})`;
+
+        let html = '<table><thead><tr>' +
+            '<th>ID</th>' +
+            '<th>Country</th>' +
+            '<th>Date</th>' +
+            '<th>Name</th>' +
+            '<th>Local Name</th>' +
+            '<th>Type</th>' +
+            '<th>Flags</th>' +
+            '</tr></thead><tbody>';
+
+        for (const h of page.content) {
+            html += `<tr>
+                <td>${h.id}</td>
+                <td>${h.countryCode} <div style="font-size:11px;color:#666;">${h.countryName ?? ''}</div></td>
+                <td>${h.date} <div style="font-size:11px;color:#666;">year=${h.year}</div></td>
+                <td>${h.name}</td>
+                <td>${h.localName}</td>
+                <td>${h.typeCode ? `<span class="tag tag-public">${h.typeCode}</span>` : ''}</td>
+                <td>
+                    <span class="pill">${h.fixed ? 'Fixed' : 'Movable'}</span>
+                    <span class="pill">${h.global ? 'Global' : 'Regional'}</span>
+                    ${h.launchYear ? `<span class="pill">since ${h.launchYear}</span>` : ''}
+                </td>
+            </tr>`;
+        }
+
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }
+
+    function clearResults() {
+        document.getElementById('resultContainer').innerHTML = '';
+        document.getElementById('resultSummary').textContent = '';
+        updatePaginationButtons(null);
+    }
+
+    function updatePaginationButtons(page) {
+        const btnFirst = document.getElementById('btnFirst');
+        const btnPrev = document.getElementById('btnPrev');
+        const btnNext = document.getElementById('btnNext');
+        const btnLast = document.getElementById('btnLast');
+
+        if (!page || page.totalPages === 0) {
+            btnFirst.disabled = true;
+            btnPrev.disabled = true;
+            btnNext.disabled = true;
+            btnLast.disabled = true;
+            return;
+        }
+
+        const isFirst = page.first ?? (page.number === 0);
+        const isLast = page.last ?? (page.number + 1 >= page.totalPages);
+
+        btnFirst.disabled = isFirst;
+        btnPrev.disabled = isFirst;
+        btnNext.disabled = isLast;
+        btnLast.disabled = isLast;
+    }
+
+    // direction: 'first' | 'prev' | 'next' | 'last'
+    function goToPage(direction) {
+        if (lastSearch.totalPages === 0) return;
+
+        let targetPage = lastSearch.page;
+
+        switch (direction) {
+            case 'first':
+                targetPage = 0;
+                break;
+            case 'prev':
+                targetPage = Math.max(0, lastSearch.page - 1);
+                break;
+            case 'next':
+                targetPage = Math.min(lastSearch.totalPages - 1, lastSearch.page + 1);
+                break;
+            case 'last':
+                targetPage = lastSearch.totalPages - 1;
+                break;
+        }
+
+        // 페이지 번호만 바꾸고, 검색 조건은 lastSearch 그대로 사용
+        document.getElementById('page').value = targetPage;
+        // 검색조건 input도 lastSearch에 맞춰 갱신 (필요하면)
+        if (lastSearch.year !== null) document.getElementById('year').value = lastSearch.year;
+        if (lastSearch.countryCode !== null) document.getElementById('countryCode').value = lastSearch.countryCode;
+        if (lastSearch.from !== null) document.getElementById('from').value = lastSearch.from;
+        if (lastSearch.to !== null) document.getElementById('to').value = lastSearch.to;
+        if (lastSearch.typeCode !== null) document.getElementById('typeCode').value = lastSearch.typeCode;
+
+        searchHolidays(false);
+    }
+
+    async function refreshYearCountry() {
+        const year = document.getElementById('year2').value;
+        const countryCode = document.getElementById('countryCode2').value;
+
+        if (!year || !countryCode) {
+            alert('연도와 국가 코드를 입력하세요.');
+            return;
+        }
+
+        const params = new URLSearchParams();
+        params.append('year', year);
+        params.append('countryCode', countryCode);
+
+        try {
+            log(`POST /api/holidays/refresh?${params.toString()}`);
+            const res = await fetch(`${baseUrl}/api/holidays/refresh?` + params.toString(), {
+                method: 'POST'
+            });
+            if (res.ok) {
+                alert('리프레시가 완료되었습니다.');
+            } else {
+                const text = await res.text();
+                log('리프레시 실패: ' + text);
+                alert('리프레시 실패: ' + res.status);
+            }
+        } catch (e) {
+            log('리프레시 오류: ' + e);
+            alert('리프레시 중 오류가 발생했습니다.');
+        }
+    }
+
+    async function deleteYearCountry() {
+        const year = document.getElementById('year2').value;
+        const countryCode = document.getElementById('countryCode2').value;
+
+        if (!year || !countryCode) {
+            alert('연도와 국가 코드를 입력하세요.');
+            return;
+        }
+        if (!confirm(`정말로 ${year}년 ${countryCode.toUpperCase()} 공휴일을 모두 삭제할까요?`)) {
+            return;
+        }
+
+        const params = new URLSearchParams();
+        params.append('year', year);
+        params.append('countryCode', countryCode);
+
+        try {
+            log(`DELETE /api/holidays?${params.toString()}`);
+            const res = await fetch(`${baseUrl}/api/holidays?` + params.toString(), {
+                method: 'DELETE'
+            });
+            if (res.ok) {
+                alert('삭제가 완료되었습니다.');
+            } else {
+                const text = await res.text();
+                log('삭제 실패: ' + text);
+                alert('삭제 실패: ' + res.status);
+            }
+        } catch (e) {
+            log('삭제 오류: ' + e);
+            alert('삭제 중 오류가 발생했습니다.');
+        }
+    }
+</script>
+</body>
+</html>

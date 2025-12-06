@@ -1,6 +1,5 @@
 package com.example.holiday.controller;
 
-import com.example.holiday.dto.request.HolidaySyncRequest;
 import com.example.holiday.dto.response.HolidayResponse;
 import com.example.holiday.service.HolidayService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -72,8 +71,9 @@ public class HolidayController {
             description = "특정 연도와 국가에 대한 공휴일 데이터를 외부 API에서 다시 조회하여 기존 데이터를 덮어씁니다."
     )
     @PostMapping("/refresh")
-    public ResponseEntity<Void> refresh(@RequestBody HolidaySyncRequest request) {
-        holidayService.refresh(request.year(), request.countryCode());
+    public ResponseEntity<Void> refresh(        @RequestParam int year,
+                                                @RequestParam String countryCode) {
+        holidayService.refresh(year, countryCode);
         return ResponseEntity.noContent().build();
     }
 
